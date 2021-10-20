@@ -1,0 +1,6 @@
+.idea
+webserver/run/config.yaml
+.gradle
+build/
+buildSrc/build
+buildSrc/.gradle

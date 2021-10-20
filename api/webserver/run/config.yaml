@@ -1,0 +1,11 @@
+webserver:
+  port: 8080
+database:
+  hostname: xx
+  port: 3306
+  username: xx
+  password: xx
+  database: xx
+gitlab:
+  hostUrl: xxx
+  token: xx
