@@ -22,7 +22,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.5")
 
     // dependency injection
-
+    implementation ("io.insert-koin:koin-core:3.1.2")
 
     // config
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
@@ -35,9 +35,16 @@ dependencies {
     // gitlab
     implementation("org.gitlab4j:gitlab4j-api:4.15.7")
 
+    // unit test
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.4.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.2")
 
-    implementation ("io.insert-koin:koin-core:3.1.2")
+}
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    workingDir = File("${projectDir.absolutePath}/run")
 }
 
 tasks.register("prepareKotlinBuildScriptModel"){}

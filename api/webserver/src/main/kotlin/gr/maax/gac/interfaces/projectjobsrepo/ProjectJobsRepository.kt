@@ -2,6 +2,7 @@ package gr.maax.gac.interfaces.projectjobsrepo
 
 import gr.maax.gac.interfaces.database.DatabaseManager
 import gr.maax.gac.interfaces.gitlab.GitlabManager
+import org.gitlab4j.api.models.Job
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -11,8 +12,10 @@ class ProjectJobsRepository(private val projectId: Int): KoinComponent {
     private val gitlabManager: GitlabManager by inject()
 
     fun updateDatabase() {
-        val newestJobIdInDB = 0
+        val newestJobIdInDB = databaseManager.getNewestJob(projectId) ?: 0
         var page = 1
+
+        val jobsToInsert = mutableListOf<Job>()
 
         jobLoop@ while (true) {
             val jobs = gitlabManager.getJobs(projectId, page)
@@ -31,11 +34,22 @@ class ProjectJobsRepository(private val projectId: Int): KoinComponent {
                 }
 
                 // add job to database
-                databaseManager.addJob(job)
+                jobsToInsert.add(job)
+            }
+
+            if (jobsToInsert.size > 0) {
+                databaseManager.addJobs(projectId, jobsToInsert)
+                jobsToInsert.clear()
             }
 
             page++
         }
+
+        if (jobsToInsert.size > 0) {
+            databaseManager.addJobs(projectId, jobsToInsert)
+            jobsToInsert.clear()
+        }
+
     }
 
     fun analyze(): AnalyzeResult {

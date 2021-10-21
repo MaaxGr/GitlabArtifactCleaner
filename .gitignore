@@ -1,5 +1,5 @@
 .idea
-webserver/run/config.yaml
+api/webserver/run/config.yaml
 .gradle
 build/
 buildSrc/build
