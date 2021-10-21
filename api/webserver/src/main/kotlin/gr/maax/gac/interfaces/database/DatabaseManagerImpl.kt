@@ -21,6 +21,10 @@ class DatabaseManagerImpl : DatabaseManager, KoinComponent {
 
     private val jobCacheDao = JobCacheDao(database)
 
+    override fun getAllSuccessJobsWithArtifacts(projectId: Int): List<JobCacheDao.DBEntity> {
+        return jobCacheDao.getAllSuccessJobsWithArtifacts(projectId)
+    }
+
     override fun getNewestJob(projectId: Int): Int? {
         return jobCacheDao.getNewestJob(projectId)
     }
@@ -36,7 +40,7 @@ class DatabaseManagerImpl : DatabaseManager, KoinComponent {
             ref = job.ref,
             artifactSize = realArtifactSizeMB,
             status = job.status.name,
-            createdAt = Timestamp(job.createdAt.time).toLocalDateTime().toLocalDate()
+            createdAt = Timestamp(job.createdAt.time).toLocalDateTime()
         )
 
     }
@@ -53,12 +57,15 @@ class DatabaseManagerImpl : DatabaseManager, KoinComponent {
                     ref = job.ref,
                     artifactSize = realArtifactSizeMB,
                     status = job.status.name,
-                    createdAt = Timestamp(job.createdAt.time).toLocalDateTime().toLocalDate(),
+                    createdAt = Timestamp(job.createdAt.time).toLocalDateTime(),
                     id = -1
                 )
             }
         )
+    }
 
+    override fun updateArtifactSize(projectId: Int, jobId: Int, newSize: Int) {
+        jobCacheDao.updateArtifactSize(projectId, jobId, newSize)
     }
 
 

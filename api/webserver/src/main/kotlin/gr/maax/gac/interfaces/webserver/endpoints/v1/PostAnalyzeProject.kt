@@ -14,7 +14,7 @@ class PostAnalyzeProject: KoinComponent {
 
         val result = ProjectJobsRepository(request.projectId).run {
             //updateDatabase()
-            analyze()
+            //analyze()
         }
 
         call.respond(result)

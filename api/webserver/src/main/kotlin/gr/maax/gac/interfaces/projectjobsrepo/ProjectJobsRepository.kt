@@ -1,12 +1,16 @@
 package gr.maax.gac.interfaces.projectjobsrepo
 
 import gr.maax.gac.interfaces.database.DatabaseManager
+import gr.maax.gac.interfaces.database.dao.JobCacheDao
 import gr.maax.gac.interfaces.gitlab.GitlabManager
 import org.gitlab4j.api.models.Job
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.sql.Timestamp
+import java.util.*
 
 class ProjectJobsRepository(private val projectId: Int): KoinComponent {
+
 
     private val databaseManager: DatabaseManager by inject()
     private val gitlabManager: GitlabManager by inject()
@@ -52,26 +56,7 @@ class ProjectJobsRepository(private val projectId: Int): KoinComponent {
 
     }
 
-    fun analyze(): AnalyzeResult {
 
-        return AnalyzeResult(
-            trashJobsTotal = 1000,
-            trashArtifactSizeMB = 10,
-            trashRefInfo = listOf()
-        )
 
-    }
-
-    data class AnalyzeResult(
-        val trashJobsTotal: Int,
-        val trashArtifactSizeMB: Int,
-        val trashRefInfo: List<AnalyzeResultRef>
-    )
-
-    data class AnalyzeResultRef(
-        val ref: String,
-        val jobIdsToKeep: List<Int>,
-        val jobIdsToDelete: List<Int>
-    )
 
 }

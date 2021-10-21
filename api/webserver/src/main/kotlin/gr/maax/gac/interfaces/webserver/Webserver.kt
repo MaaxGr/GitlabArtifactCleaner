@@ -38,6 +38,10 @@ class Webserver: KoinComponent {
                     PostAnalyzeProject().run(call)
                 }
 
+                post("/v1/updatecache") {
+
+                }
+
 
             }
 

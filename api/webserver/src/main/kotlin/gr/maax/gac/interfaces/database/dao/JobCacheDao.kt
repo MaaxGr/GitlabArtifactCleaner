@@ -1,23 +1,24 @@
 package gr.maax.gac.interfaces.database.dao
 
 import org.ktorm.database.Database
-import org.ktorm.dsl.batchInsert
-import org.ktorm.dsl.eq
-import org.ktorm.dsl.insert
-import org.ktorm.entity.Entity
-import org.ktorm.entity.filter
-import org.ktorm.entity.maxBy
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.Table
-import org.ktorm.schema.date
-import org.ktorm.schema.int
-import org.ktorm.schema.varchar
+import org.ktorm.dsl.*
+import org.ktorm.entity.*
+import org.ktorm.schema.*
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class JobCacheDao(private val database: Database) {
 
     fun getNewestJob(projectId: Int): Int? {
         return database.sequenceOf(DBTable).filter { it.projectId eq projectId } .maxBy { it.jobId }
+    }
+
+    fun getAllSuccessJobsWithArtifacts(projectId: Int): List<DBEntity> {
+        return database.sequenceOf(DBTable).filter {
+            (it.projectId eq projectId) and
+                    (it.status eq "SUCCESS") and
+                    (it.artifactSize greater  0)
+        }.toList()
     }
 
     fun insertMultiple(jobs: List<GitlabJobCache>) {
@@ -36,13 +37,22 @@ class JobCacheDao(private val database: Database) {
 
     }
 
+    fun updateArtifactSize(projectId: Int, jobId: Int, artifactSize: Int) {
+        database.update(DBTable) {
+            set(it.artifactSize, artifactSize)
+            where {
+                (it.projectId eq projectId) and (it.jobId eq jobId)
+            }
+        }
+    }
+
     fun insert(
         projectId: Int,
         jobInt: Int,
         ref: String,
         artifactSize: Int,
         status: String,
-        createdAt: LocalDate
+        createdAt: LocalDateTime
     ) {
         database.insert(DBTable) {
             set(it.projectId, projectId)
@@ -62,7 +72,7 @@ class JobCacheDao(private val database: Database) {
         val ref = varchar("ref").bindTo { it.ref }
         val artifactSize = int("artifact_size").bindTo { it.artifactSize }
         val status = varchar("status").bindTo { it.status }
-        val createdAt = date("created_at").bindTo { it.createdAt }
+        val createdAt = datetime("created_at").bindTo { it.createdAt }
     }
 
     interface DBEntity: Entity<DBEntity> {
@@ -72,7 +82,7 @@ class JobCacheDao(private val database: Database) {
         val ref: String
         val artifactSize: Int
         val status: String
-        val createdAt: LocalDate
+        val createdAt: LocalDateTime
     }
 
     data class GitlabJobCache(
@@ -82,7 +92,7 @@ class JobCacheDao(private val database: Database) {
         val ref: String,
         val artifactSize: Int,
         val status: String,
-        val createdAt: LocalDate
+        val createdAt: LocalDateTime
     )
 
 
