@@ -27,7 +27,7 @@ class GitlabManagerImpl: GitlabManager, KoinComponent {
         return api.jobApi.getJob(projectId, jobId)
     }
 
-    override fun getAllProjects(): MutableList<Project> {
+    override fun getAllProjects(): List<Project> {
         val projects = mutableListOf<Project>()
         var page = 1
 
@@ -36,6 +36,7 @@ class GitlabManagerImpl: GitlabManager, KoinComponent {
             val filter = ProjectFilter()
             filter.withMembership(true)
             filter.withMinAccessLevel(AccessLevel.MAINTAINER)
+            filter.withArchived(false)
 
             val pageProjects = api.projectApi.getProjects(filter, page, 100)
 
@@ -47,7 +48,7 @@ class GitlabManagerImpl: GitlabManager, KoinComponent {
             page++;
         }
 
-        return projects
+        return projects.filter { it.jobsEnabled }
     }
 
     override fun deleteArtifacts(projectId: Int, jobId: Int) {
