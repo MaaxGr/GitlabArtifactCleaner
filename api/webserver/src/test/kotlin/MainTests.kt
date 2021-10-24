@@ -5,6 +5,8 @@ import gr.maax.gac.interfaces.database.DatabaseManager
 import gr.maax.gac.interfaces.database.DatabaseManagerImpl
 import gr.maax.gac.interfaces.gitlab.GitlabManager
 import gr.maax.gac.interfaces.gitlab.GitlabManagerImpl
+import gr.maax.gac.interfaces.projectjobsrepo.AnalyzeManager
+import gr.maax.gac.interfaces.projectjobsrepo.ProjectAnalyzer
 import gr.maax.gac.interfaces.projectjobsrepo.ProjectJobsRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
@@ -61,6 +63,33 @@ class MainTests: KoinComponent {
 
         println(projects.size)
 
+    }
+
+    @Test
+    fun analyze() {
+        val analyzeManager = AnalyzeManager()
+
+        val result = analyzeManager.analyzeProject(287)
+        println(Gson().toJson(result))
+
+        analyzeManager.cleanProject(result.submitDeleteToken, false)
+    }
+
+    @Test
+    fun cleanAll() {
+        val gitlabManager: GitlabManager by inject()
+        val analyzeManager = AnalyzeManager()
+
+        val projects = gitlabManager.getAllProjects()
+
+        projects.forEach {
+            if (it.id != 91) {
+                println("Cleanup for ${it.id}")
+                val result = analyzeManager.analyzeProject(it.id)
+                println("Result: $result")
+                analyzeManager.cleanProject(result.submitDeleteToken, false)
+            }
+        }
     }
 
 }

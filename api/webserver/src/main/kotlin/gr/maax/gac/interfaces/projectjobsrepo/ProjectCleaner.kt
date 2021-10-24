@@ -11,19 +11,26 @@ class ProjectCleaner(private val projectId: Int): KoinComponent {
     private val gitlabManager: GitlabManager by inject()
     private val databaseManager: DatabaseManager by inject()
 
-    fun clean(result: ProjectAnalyzer.AnalyzeResult) {
+    fun clean(result: ProjectAnalyzer.AnalyzeResult, dryRun: Boolean) {
         val jobsToDelete = result.trashRefInfo.map { it.jobIdsToDelete }.flatten()
 
+        println("Jobs to delete: $jobsToDelete")
+
+        if (dryRun) {
+            return
+        }
+
         jobsToDelete.forEach { jobId ->
+            println("Deleting artifact for job $jobId")
             gitlabManager.deleteArtifacts(projectId, jobId)
 
             val job = gitlabManager.getJob(projectId, jobId)
                 ?: throw IllegalStateException("Job-ID $jobId not found?")
 
-            val realArtifactSizeMB = job.artifacts.filter { it.fileType != Artifact.FileType.TRACE }
-                .sumOf { (it.size ?: 0) / 1000 / 1000 }
+            val realArtifactSizeKB = job.artifacts.filter { it.fileType != Artifact.FileType.TRACE }
+                .sumOf { (it.size ?: 0) / 1000 }
 
-            databaseManager.updateArtifactSize(projectId, jobId, realArtifactSizeMB)
+            databaseManager.updateArtifactSize(projectId, jobId, realArtifactSizeKB)
         }
     }
 

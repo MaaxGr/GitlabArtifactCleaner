@@ -6,7 +6,7 @@ class AnalyzeManager {
 
     private val analyzeCache = mutableListOf<AnalyzedCacheEntry>()
 
-    fun analyzeProject(projectId: Int) {
+    fun analyzeProject(projectId: Int): ProjectAnalyzer.AnalyzeResult {
         val analyzedResult = ProjectAnalyzer(projectId).analyze()
 
         analyzeCache.add(
@@ -16,10 +16,13 @@ class AnalyzeManager {
                 result = analyzedResult
             )
         )
+
+        return analyzedResult
     }
 
-    fun cleanProject(token: UUID) {
-
+    fun cleanProject(token: UUID, dryRun: Boolean = false) {
+        val cacheEntry = analyzeCache.first { it.token == token }
+        ProjectCleaner(cacheEntry.projectId).clean(cacheEntry.result, dryRun)
     }
 
 

@@ -2,6 +2,7 @@ package gr.maax.gac.interfaces.projectjobsrepo
 
 import gr.maax.gac.interfaces.database.DatabaseManager
 import gr.maax.gac.interfaces.database.dao.JobCacheDao
+import gr.maax.gac.interfaces.gitlab.GitlabManager
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.sql.Timestamp
@@ -10,9 +11,12 @@ import java.util.*
 class ProjectAnalyzer(private val projectId: Int): KoinComponent {
 
     private val databaseManager: DatabaseManager by inject()
+    private val gitlabManager: GitlabManager by inject()
 
+    private val refs = gitlabManager.getRefs(projectId)
 
     fun analyze(): AnalyzeResult {
+
         val jobs = databaseManager.getAllSuccessJobsWithArtifacts(projectId)
 
         val totalJobCount = jobs.size
@@ -52,6 +56,7 @@ class ProjectAnalyzer(private val projectId: Int): KoinComponent {
 
         return AnalyzeResultRef(
             ref = ref,
+            refExists = refs.any { it.name == ref },
             jobIdToKeep = retainedJob.jobId,
             jobIdsToDelete = trashJobs.map { it.jobId },
             artifactSizeToDelete = trashJobs.sumOf { it.artifactSize }
@@ -71,6 +76,7 @@ class ProjectAnalyzer(private val projectId: Int): KoinComponent {
 
     data class AnalyzeResultRef(
         val ref: String,
+        val refExists: Boolean,
         val jobIdToKeep: Int,
         val jobIdsToDelete: List<Int>,
         val artifactSizeToDelete: Int

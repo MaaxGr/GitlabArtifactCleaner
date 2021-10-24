@@ -15,12 +15,13 @@ Project to clean old gitlab artifacts!
 # Roadmap
 ## First Release
 * [x] Create base project structure
-* [ ] Create database entities
-* [ ] Create gitlab integration
+* [x] Create database entities
+* [x] Create gitlab integration
 * [x] Write database update logic
-* [ ] Write analyze logic
+* [x] Write analyze logic
 * [ ] Create endpoint that actually deletes artifacts
 * [ ] Authentication for API
 
 ## Future Releases
 * [ ] make retain policy configurable
+* [ ] create web ui

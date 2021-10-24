@@ -2,10 +2,7 @@ package gr.maax.gac.interfaces.gitlab
 
 import gr.maax.gac.interfaces.config.ConfigGitlab
 import org.gitlab4j.api.GitLabApi
-import org.gitlab4j.api.models.AccessLevel
-import org.gitlab4j.api.models.Job
-import org.gitlab4j.api.models.Project
-import org.gitlab4j.api.models.ProjectFilter
+import org.gitlab4j.api.models.*
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -53,6 +50,26 @@ class GitlabManagerImpl: GitlabManager, KoinComponent {
 
     override fun deleteArtifacts(projectId: Int, jobId: Int) {
         api.jobApi.deleteArtifacts(projectId, jobId)
+    }
+
+    override fun getRefs(projectId: Int): List<Branch> {
+
+        var page = 1
+        val allBranches = mutableListOf<Branch>()
+
+        while (true) {
+
+            val branches = api.repositoryApi.getBranches(projectId, page, 100)
+
+            if (branches.isEmpty()) {
+                break
+            }
+
+            allBranches.addAll(branches)
+            page++
+        }
+
+        return allBranches.toList()
     }
 
 

@@ -31,9 +31,10 @@ dependencies {
     // database
     implementation("mysql:mysql-connector-java:8.0.22")
     implementation("org.ktorm:ktorm-core:3.2.0")
+    implementation("com.zaxxer:HikariCP:5.0.0")
 
     // gitlab
-    implementation("org.gitlab4j:gitlab4j-api:4.15.7")
+    implementation("org.gitlab4j:gitlab4j-api:4.18.0")
 
     // unit test
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")

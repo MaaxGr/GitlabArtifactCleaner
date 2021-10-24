@@ -1,5 +1,7 @@
 package gr.maax.gac.interfaces.database
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import gr.maax.gac.interfaces.config.ConfigDatabaseMySQL
 import gr.maax.gac.interfaces.database.dao.JobCacheDao
 import org.gitlab4j.api.models.Artifact
@@ -13,11 +15,16 @@ class DatabaseManagerImpl : DatabaseManager, KoinComponent {
 
     private val databaseConfig: ConfigDatabaseMySQL by inject()
 
-    private val database: Database = Database.connect(
-        url = "jdbc:mysql://${databaseConfig.hostname}:${databaseConfig.port}/${databaseConfig.database}",
-        user = databaseConfig.username,
+    private val dataSource = HikariDataSource(HikariConfig().apply {
+        jdbcUrl = "jdbc:mysql://${databaseConfig.hostname}:${databaseConfig.port}/${databaseConfig.database}"
+        username = databaseConfig.username
         password = databaseConfig.password
-    )
+        addDataSourceProperty( "cachePrepStmts" , "true" );
+        addDataSourceProperty( "prepStmtCacheSize" , "250" );
+        addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
+    })
+
+    private val database: Database = Database.connect(dataSource)
 
     private val jobCacheDao = JobCacheDao(database)
 
@@ -30,15 +37,15 @@ class DatabaseManagerImpl : DatabaseManager, KoinComponent {
     }
 
     override fun addJob(projectId: Int, job: Job) {
-        // filter logs and convert bytes to mb
-        val realArtifactSizeMB = job.artifacts.filter { it.fileType != Artifact.FileType.TRACE }
-            .sumOf { (it.size ?: 0) / 1000 / 1000 }
+        // filter logs and convert bytes to kb
+        val realArtifactSizeKB = job.artifacts.filter { it.fileType != Artifact.FileType.TRACE }
+            .sumOf { (it.size ?: 0) / 1000 }
 
         jobCacheDao.insert(
             projectId = projectId,
             jobInt = job.id,
             ref = job.ref,
-            artifactSize = realArtifactSizeMB,
+            artifactSize = realArtifactSizeKB,
             status = job.status.name,
             createdAt = Timestamp(job.createdAt.time).toLocalDateTime()
         )
@@ -48,14 +55,14 @@ class DatabaseManagerImpl : DatabaseManager, KoinComponent {
     override fun addJobs(projectId: Int, jobs: List<Job>) {
         jobCacheDao.insertMultiple(
             jobs.map { job ->
-                val realArtifactSizeMB = job.artifacts.filter { it.fileType != Artifact.FileType.TRACE }
-                    .sumOf { (it.size ?: 0) / 1000 / 1000 }
+                val realArtifactSizeKB = job.artifacts.filter { it.fileType != Artifact.FileType.TRACE }
+                    .sumOf { (it.size ?: 0) / 1000 }
 
                 JobCacheDao.GitlabJobCache(
                     projectId = projectId,
                     jobId = job.id,
                     ref = job.ref,
-                    artifactSize = realArtifactSizeMB,
+                    artifactSize = realArtifactSizeKB,
                     status = job.status.name,
                     createdAt = Timestamp(job.createdAt.time).toLocalDateTime(),
                     id = -1
